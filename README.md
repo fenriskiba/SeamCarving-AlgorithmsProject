@@ -8,3 +8,5 @@ For this project, the image to be resized is in pgm (portable gray map) format. 
 Standard Input: a.exe image.pgm 5 10
 
 Output will be saved as image_processed.pgm
+
+To Compile run: g++ main.cpp SeamCarveImage.cpp -o SeamCarve
