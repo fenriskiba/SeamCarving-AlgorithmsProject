@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
@@ -16,17 +18,18 @@ class SeamCarveImage
         int height;
         
     public:
-        Maze(string);
-        
-        void horizontalCarve(int);
-        void verticalCarve(int);
+        SeamCarveImage(string);
+        void seamCarve(int,int);
+        void outputCarvedImage();
         
     private:
-        void horizontalSingleCarve();
-        void verticalSingleCarve();
+        void collectImageFromFile(string);
+        void generatePixelMatrix();
         int calculatePixelWeight(int, int);
         int calculateRowWeight(int);
         int calculateColumnWeight(int);
+        void horizontalCarve();
+        void verticalCarve();
 };
 
 #endif
