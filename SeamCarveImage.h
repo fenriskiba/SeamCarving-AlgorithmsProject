@@ -16,6 +16,7 @@ class SeamCarveImage
         int** pixelWeights;
         int width;
         int height;
+        string maxGreyscale;
         
     public:
         SeamCarveImage(string);

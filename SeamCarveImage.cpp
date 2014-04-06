@@ -55,6 +55,7 @@ void SeamCarveImage::collectImageFromFile(string fileName)
         else if(stepCount == 3)
         {
             //Maximum greyscale value
+            maxGreyscale = temp;
             stepCount++;
         }
         else
@@ -76,7 +77,6 @@ void SeamCarveImage::collectImageFromFile(string fileName)
             }
             contentArray.push_back(numberString);
         }
-        
     }
     
     infile.close();
@@ -96,7 +96,22 @@ void SeamCarveImage::collectImageFromFile(string fileName)
 
 void SeamCarveImage::outputCarvedImage()
 {
+    ofstream outputFile("image_processed.pgm");
     
+    outputFile << "P2" << endl
+                << width << " " << height << endl
+                << maxGreyscale << endl;
+    
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            outputFile << image[x][y] << " ";
+        }
+        outputFile << endl;
+    }
+    
+    outputFile.close();
 }
 
 
