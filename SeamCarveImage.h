@@ -29,6 +29,10 @@ class SeamCarveImage
         int calculatePixelEnergy(int, int);
         void verticalCarve();
         void horizontalCarve();
+        void identifyVerticalSeam();
+        void identifyHorizontalSeam();
+        void deleteVerticalSeam();
+        void deleteHorizontalSeam();
 };
 
 #endif

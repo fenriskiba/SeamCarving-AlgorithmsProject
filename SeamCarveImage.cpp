@@ -194,10 +194,28 @@ void SeamCarveImage::seamCarve(int verticalCarves, int horizontalCarves)
 
 void SeamCarveImage::verticalCarve()
 {
-    //Identify Seam
-    
-    
-    //Delete Seam
+    identifyVerticalSeam();
+    deleteVerticalSeam();
+}
+
+void SeamCarveImage::horizontalCarve()
+{
+    identifyHorizontalSeam();
+    deleteHorizontalSeam();
+}
+
+void SeamCarveImage::identifyVerticalSeam()
+{
+
+}
+
+void SeamCarveImage::identifyHorizontalSeam()
+{
+
+}
+
+void SeamCarveImage::deleteVerticalSeam()
+{
     int oldWidth = width;
     width--;
     vector<int> contentArray;
@@ -229,12 +247,8 @@ void SeamCarveImage::verticalCarve()
     }
 }
 
-void SeamCarveImage::horizontalCarve()
+void SeamCarveImage::deleteHorizontalSeam()
 {
-    //Identify Seam
-    
-    
-    //Delete Seam
     int oldHeight = height;
     height--;
     vector<int> contentArray;
