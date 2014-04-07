@@ -13,7 +13,7 @@ class SeamCarveImage
 {
     private:
         int** image;
-        int** pixelWeights;
+        int** pixelEnergyMatrix;
         int width;
         int height;
         string maxGreyscale;
@@ -25,12 +25,8 @@ class SeamCarveImage
         
     private:
         void collectImageFromFile(string);
-        void generatePixelMatrix();
-        int calculatePixelWeight(int, int);
-        int calculateRowWeight(int);
-        int calculateColumnWeight(int);
-        void horizontalCarve();
-        void verticalCarve();
+        void generatePixelEnergyMatrix();
+        int calculatePixelEnergy(int, int);
 };
 
 #endif

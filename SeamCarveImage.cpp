@@ -5,7 +5,7 @@ using namespace std;
 SeamCarveImage::SeamCarveImage(string fileName)
 {
     collectImageFromFile(fileName);
-    //generatePixelMatrix();
+    generatePixelEnergyMatrix();
 }
 
 void SeamCarveImage::collectImageFromFile(string fileName)
@@ -114,4 +114,66 @@ void SeamCarveImage::outputCarvedImage()
     outputFile.close();
 }
 
+void SeamCarveImage::generatePixelEnergyMatrix()
+{
+    //Delete the old pixel energy matrix if there is one
+    if(pixelEnergyMatrix != NULL)
+    {
+        for(int i = 0; i < width; i++)
+        {
+            delete [] pixelEnergyMatrix[i];
+        }
+        delete [] pixelEnergyMatrix;
+    }
+    
+    pixelEnergyMatrix = new int*[width];
+    for(int i = 0; i < width; i++)
+    {
+        pixelEnergyMatrix[i] = new int[height];
+    }
+    
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            pixelEnergyMatrix[x][y] = calculatePixelEnergy(x,y);
+        }
+    }
+}
+
+int SeamCarveImage::calculatePixelEnergy(int x, int y)
+{
+    int current = image[x][y];
+    int above;
+    int below;
+    int right;
+    int left;
+    
+    if(x == 0)
+        left = image[x][y];
+    else
+        left = image[x-1][y];
+    
+    if(y == 0)
+        above = image[x][y];
+    else
+        above = image[x][y-1];
+        
+    if(x == width - 1)
+        right = image[x][y];
+    else
+        right = image[x+1][y];
+        
+    if(y == height - 1)
+        below = image[x][y];
+    else
+        below = image[x][y+1];
+    
+    int result = abs(current - above) +
+                abs(current - below) +
+                abs(current - right) +
+                abs(current - left);
+    
+    return result;
+}
 
