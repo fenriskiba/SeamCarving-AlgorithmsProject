@@ -5,6 +5,7 @@ using namespace std;
 SeamCarveImage::SeamCarveImage(string fileName)
 {
     collectImageFromFile(fileName);
+    pixelEnergyMatrix = NULL;
     generatePixelEnergyMatrix();
 }
 
@@ -65,7 +66,7 @@ void SeamCarveImage::collectImageFromFile(string fileName)
             int stringLen = temp.length();
             for(int i = 0; i < stringLen; i++)
             {
-                if(temp[i] == ' ' || temp[i] == '\t')
+                if(temp[i] == ' ' || temp[i] == '\t' || temp[i] == '\n')
                 {
                     contentArray.push_back(numberString);
                     numberString = "";
@@ -76,8 +77,10 @@ void SeamCarveImage::collectImageFromFile(string fileName)
                 }
             }
             
-            if(temp != "")
+            /*if(temp != "")
+            {
                 contentArray.push_back(numberString);
+            }*/
         }
     }
     
@@ -118,16 +121,17 @@ void SeamCarveImage::outputCarvedImage()
 
 void SeamCarveImage::generatePixelEnergyMatrix()
 {
-    //Delete the old pixel energy matrix if there is one
+    //Delete old
     if(pixelEnergyMatrix != NULL)
     {
-        for(int i = 0; i < width; i++)
+        for(int i = 0; i < width - 1; i++)
         {
             delete [] pixelEnergyMatrix[i];
         }
         delete [] pixelEnergyMatrix;
     }
     
+    //Create new
     pixelEnergyMatrix = new int*[width];
     for(int i = 0; i < width; i++)
     {
@@ -218,7 +222,7 @@ void SeamCarveImage::identifyVerticalSeam()
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
-        {
+        {        
             if(y == 0)
             {
                 cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y];
@@ -242,8 +246,42 @@ void SeamCarveImage::identifyVerticalSeam()
             }
         }
     }
-
+    
     //Identify Seam
+    int smallestIndex = 0;
+    for(int i = 0; i < width; i++)
+    {
+        if(cumulativeEnergy[i][height-1] < cumulativeEnergy[smallestIndex][height-1])
+        {
+            smallestIndex = i;
+        }
+    }
+    image[smallestIndex][height-1] = -1;
+    
+    for(int i = 1; i < height; i++)
+    {
+        int currentHeight = height - 1 - i;
+        int rightIndex = smallestIndex + 1;
+        int centerIndex = smallestIndex;
+        int leftIndex = smallestIndex - 1;
+        
+        if(rightIndex < 0 || rightIndex >= width)
+            rightIndex = centerIndex;
+        if(leftIndex < 0 || leftIndex >= width)
+            leftIndex = centerIndex;
+        
+        int smallestValue = min(min(cumulativeEnergy[rightIndex][currentHeight], cumulativeEnergy[leftIndex][currentHeight]), 
+                                cumulativeEnergy[centerIndex][currentHeight]);
+        
+        if(cumulativeEnergy[centerIndex][currentHeight] == smallestValue)
+            smallestIndex = centerIndex;
+        else if(cumulativeEnergy[rightIndex][currentHeight] == smallestValue)
+            smallestIndex = rightIndex;
+        else
+            smallestIndex = leftIndex;
+        
+        image[smallestIndex][currentHeight] = -1;
+    }
 }
 
 void SeamCarveImage::identifyHorizontalSeam()
@@ -284,6 +322,39 @@ void SeamCarveImage::identifyHorizontalSeam()
     }
     
     //Identify Seam
+    int smallestIndex = 0;
+    for(int i = 0; i < height; i++)
+    {
+        if(cumulativeEnergy[width-1][i] < cumulativeEnergy[width-1][smallestIndex])
+            smallestIndex = i;
+    }
+    image[width-1][smallestIndex] = -1;
+    
+    for(int i = 1; i < width; i++)
+    {
+        int currentWidth = width - 1 - i;
+        
+        int upIndex = smallestIndex - 1;
+        int currentIndex = smallestIndex;
+        int downIndex = smallestIndex + 1;
+        
+        if(upIndex < 0 || upIndex >= height)
+            upIndex = currentIndex;
+        if(downIndex < 0 || downIndex >= height)
+            downIndex = currentIndex;
+        
+        int smallestValue = min(min(cumulativeEnergy[currentWidth][upIndex], cumulativeEnergy[currentWidth][downIndex]),
+                                cumulativeEnergy[currentWidth][currentIndex]);
+        
+        if(smallestValue == cumulativeEnergy[currentWidth][currentIndex])
+            smallestIndex = currentIndex;
+        else if(smallestValue == cumulativeEnergy[currentWidth][upIndex])
+            smallestIndex = upIndex;
+        else
+            smallestIndex = downIndex;
+        
+        image[currentWidth][smallestIndex] = -1;
+    }
 }
 
 void SeamCarveImage::deleteVerticalSeam()
@@ -343,7 +414,15 @@ void SeamCarveImage::deleteHorizontalSeam()
         }
     }
     
+    //Delete old Image
+    for(int i = 0; i < width; i++)
+    {
+        delete [] image[i];
+    }
+    delete [] image;
+    
     //Create new Image
+    image = new int*[width];
     for(int i = 0; i < width; i++)
     {
         image[i] = new int[height];
