@@ -27,6 +27,8 @@ class SeamCarveImage
         void collectImageFromFile(string);
         void generatePixelEnergyMatrix();
         int calculatePixelEnergy(int, int);
+        void verticalCarve();
+        void horizontalCarve();
 };
 
 #endif

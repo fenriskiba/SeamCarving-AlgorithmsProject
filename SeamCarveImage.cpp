@@ -75,7 +75,7 @@ void SeamCarveImage::collectImageFromFile(string fileName)
                     numberString += temp[i];
                 }
             }
-            contentArray.push_back(numberString);
+            //contentArray.push_back(numberString);
         }
     }
     
@@ -175,5 +175,94 @@ int SeamCarveImage::calculatePixelEnergy(int x, int y)
                 abs(current - left);
     
     return result;
+}
+
+void SeamCarveImage::seamCarve(int verticalCarves, int horizontalCarves)
+{
+    for(int i = 0; i < verticalCarves; i++)
+    {
+        verticalCarve();
+        generatePixelEnergyMatrix();
+    }
+    
+    for(int i = 0; i < horizontalCarves; i++)
+    {
+        horizontalCarve();
+        generatePixelEnergyMatrix();
+    }
+}
+
+void SeamCarveImage::verticalCarve()
+{
+    //Identify Seam
+    
+    
+    //Delete Seam
+    int oldWidth = width;
+    width--;
+    vector<int> contentArray;
+    
+    //Collect non-highlighted image
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < oldWidth; x++)
+        {
+            if(image[x][y] != -1)
+                contentArray.push_back(image[x][y]);
+        }
+    }
+    
+    //Create new Image
+    for(int i = 0; i < width; i++)
+    {
+        image[i] = new int[height];
+    }
+    
+    int vectorIterator = 0;
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            image[x][y] = contentArray.at(vectorIterator);
+            vectorIterator++;
+        }
+    }
+}
+
+void SeamCarveImage::horizontalCarve()
+{
+    //Identify Seam
+    
+    
+    //Delete Seam
+    int oldHeight = height;
+    height--;
+    vector<int> contentArray;
+    
+    //Collect non-highlighted image
+    for(int y = 0; y < oldHeight; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            if(image[x][y] != -1)
+                contentArray.push_back(image[x][y]);
+        }
+    }
+    
+    //Create new Image
+    for(int i = 0; i < width; i++)
+    {
+        image[i] = new int[height];
+    }
+    
+    int vectorIterator = 0;
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            image[x][y] = contentArray.at(vectorIterator);
+            vectorIterator++;
+        }
+    }
 }
 

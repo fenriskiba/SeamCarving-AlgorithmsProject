@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
         
         SeamCarveImage image(fileName);
         
-        //image.seamCarve(verticalCarves, horizontalCarves);
+        image.seamCarve(verticalCarves, horizontalCarves);
         
         image.outputCarvedImage();
     }
