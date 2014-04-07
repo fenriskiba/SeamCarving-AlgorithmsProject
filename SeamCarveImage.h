@@ -30,9 +30,8 @@ class SeamCarveImage
         void verticalCarve();
         void horizontalCarve();
         void identifyVerticalSeam();
-        void identifyHorizontalSeam();
         void deleteVerticalSeam();
-        void deleteHorizontalSeam();
+        void rotateImage();
 };
 
 #endif

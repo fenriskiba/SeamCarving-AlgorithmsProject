@@ -206,8 +206,9 @@ void SeamCarveImage::verticalCarve()
 
 void SeamCarveImage::horizontalCarve()
 {
-    identifyHorizontalSeam();
-    deleteHorizontalSeam();
+    rotateImage();
+    verticalCarve();
+    rotateImage();
 }
 
 void SeamCarveImage::identifyVerticalSeam()
@@ -273,87 +274,15 @@ void SeamCarveImage::identifyVerticalSeam()
         int smallestValue = min(min(cumulativeEnergy[rightIndex][currentHeight], cumulativeEnergy[leftIndex][currentHeight]), 
                                 cumulativeEnergy[centerIndex][currentHeight]);
         
-        if(cumulativeEnergy[centerIndex][currentHeight] == smallestValue)
+        
+        if(cumulativeEnergy[leftIndex][currentHeight] == smallestValue)
+            smallestIndex = leftIndex;
+        else if(cumulativeEnergy[centerIndex][currentHeight] == smallestValue)
             smallestIndex = centerIndex;
         else if(cumulativeEnergy[rightIndex][currentHeight] == smallestValue)
             smallestIndex = rightIndex;
-        else
-            smallestIndex = leftIndex;
         
         image[smallestIndex][currentHeight] = -1;
-    }
-}
-
-void SeamCarveImage::identifyHorizontalSeam()
-{
-    //Generate cumulative energy matrix
-    int** cumulativeEnergy = new int*[width];
-    for(int i = 0; i < width; i++)
-    {
-        cumulativeEnergy[i] = new int[height];
-    }
-    
-    for(int x = 0; x < width; x++)
-    {
-        for(int y = 0; y < height; y++)
-        {
-            if(x == 0)
-            {
-                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y];
-            }
-            else
-            {
-                int minLastNeighbor;
-                if(y == 0)
-                {
-                    minLastNeighbor = min(cumulativeEnergy[x-1][y+1], cumulativeEnergy[x-1][y]);
-                }
-                else if(y == (height - 1))
-                {
-                    minLastNeighbor = min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x-1][y]);
-                }
-                else
-                {
-                    minLastNeighbor = min(min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x-1][y+1]), cumulativeEnergy[x-1][y]);
-                }
-                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y] + minLastNeighbor;
-            }
-        }
-    }
-    
-    //Identify Seam
-    int smallestIndex = 0;
-    for(int i = 0; i < height; i++)
-    {
-        if(cumulativeEnergy[width-1][i] < cumulativeEnergy[width-1][smallestIndex])
-            smallestIndex = i;
-    }
-    image[width-1][smallestIndex] = -1;
-    
-    for(int i = 1; i < width; i++)
-    {
-        int currentWidth = width - 1 - i;
-        
-        int upIndex = smallestIndex - 1;
-        int currentIndex = smallestIndex;
-        int downIndex = smallestIndex + 1;
-        
-        if(upIndex < 0 || upIndex >= height)
-            upIndex = currentIndex;
-        if(downIndex < 0 || downIndex >= height)
-            downIndex = currentIndex;
-        
-        int smallestValue = min(min(cumulativeEnergy[currentWidth][upIndex], cumulativeEnergy[currentWidth][downIndex]),
-                                cumulativeEnergy[currentWidth][currentIndex]);
-        
-        if(smallestValue == cumulativeEnergy[currentWidth][currentIndex])
-            smallestIndex = currentIndex;
-        else if(smallestValue == cumulativeEnergy[currentWidth][upIndex])
-            smallestIndex = upIndex;
-        else
-            smallestIndex = downIndex;
-        
-        image[currentWidth][smallestIndex] = -1;
     }
 }
 
@@ -398,44 +327,43 @@ void SeamCarveImage::deleteVerticalSeam()
     }
 }
 
-void SeamCarveImage::deleteHorizontalSeam()
+void SeamCarveImage::rotateImage()
 {
-    int oldHeight = height;
-    height--;
-    vector<int> contentArray;
-    
-    //Collect non-highlighted image
-    for(int y = 0; y < oldHeight; y++)
+    for(int i = 0; i < width - 1; i++)
     {
-        for(int x = 0; x < width; x++)
-        {
-            if(image[x][y] != -1)
-                contentArray.push_back(image[x][y]);
-        }
+        delete [] pixelEnergyMatrix[i];
     }
+    delete [] pixelEnergyMatrix;
+    pixelEnergyMatrix = NULL;
     
-    //Delete old Image
-    for(int i = 0; i < width; i++)
-    {
-        delete [] image[i];
-    }
-    delete [] image;
+    int preRotateWidth = width;
+    int preRotateHeight = height;
     
-    //Create new Image
+    height = preRotateWidth;
+    width = preRotateHeight;
+    
+    int** oldImage = image;
     image = new int*[width];
     for(int i = 0; i < width; i++)
     {
         image[i] = new int[height];
     }
     
-    int vectorIterator = 0;
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
         {
-            image[x][y] = contentArray.at(vectorIterator);
-            vectorIterator++;
+            image[x][y] = oldImage[y][x];
         }
     }
+    
+    generatePixelEnergyMatrix();
+    
+    for(int i = 0; i < height; i++)
+    {
+        delete [] oldImage[i];
+    }
+    delete [] oldImage;
 }
+
 
