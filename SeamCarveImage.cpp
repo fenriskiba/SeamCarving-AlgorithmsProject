@@ -75,7 +75,9 @@ void SeamCarveImage::collectImageFromFile(string fileName)
                     numberString += temp[i];
                 }
             }
-            //contentArray.push_back(numberString);
+            
+            if(temp != "")
+                contentArray.push_back(numberString);
         }
     }
     
@@ -206,12 +208,82 @@ void SeamCarveImage::horizontalCarve()
 
 void SeamCarveImage::identifyVerticalSeam()
 {
+    //Generate cumulative energy matrix
+    int** cumulativeEnergy = new int*[width];
+    for(int i = 0; i < width; i++)
+    {
+        cumulativeEnergy[i] = new int[height];
+    }
+    
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            if(y == 0)
+            {
+                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y];
+            }
+            else
+            {
+                int minLastNeighbor;
+                if(x == 0)
+                {
+                    minLastNeighbor = min(cumulativeEnergy[x+1][y-1], cumulativeEnergy[x][y-1]);
+                }
+                else if(x == (width - 1))
+                {
+                    minLastNeighbor = min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x][y-1]);
+                }
+                else
+                {
+                    minLastNeighbor = min(min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x+1][y-1]), cumulativeEnergy[x][y-1]);
+                }
+                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y] + minLastNeighbor;
+            }
+        }
+    }
 
+    //Identify Seam
 }
 
 void SeamCarveImage::identifyHorizontalSeam()
 {
-
+    //Generate cumulative energy matrix
+    int** cumulativeEnergy = new int*[width];
+    for(int i = 0; i < width; i++)
+    {
+        cumulativeEnergy[i] = new int[height];
+    }
+    
+    for(int x = 0; x < width; x++)
+    {
+        for(int y = 0; y < height; y++)
+        {
+            if(x == 0)
+            {
+                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y];
+            }
+            else
+            {
+                int minLastNeighbor;
+                if(y == 0)
+                {
+                    minLastNeighbor = min(cumulativeEnergy[x-1][y+1], cumulativeEnergy[x-1][y]);
+                }
+                else if(y == (height - 1))
+                {
+                    minLastNeighbor = min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x-1][y]);
+                }
+                else
+                {
+                    minLastNeighbor = min(min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x-1][y+1]), cumulativeEnergy[x-1][y]);
+                }
+                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y] + minLastNeighbor;
+            }
+        }
+    }
+    
+    //Identify Seam
 }
 
 void SeamCarveImage::deleteVerticalSeam()
@@ -230,7 +302,15 @@ void SeamCarveImage::deleteVerticalSeam()
         }
     }
     
+    //Delete old Image
+    for(int i = 0; i < width; i++)
+    {
+        delete [] image[i];
+    }
+    delete [] image;
+    
     //Create new Image
+    image = new int*[width];
     for(int i = 0; i < width; i++)
     {
         image[i] = new int[height];
