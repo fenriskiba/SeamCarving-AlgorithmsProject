@@ -77,10 +77,10 @@ void SeamCarveImage::collectImageFromFile(string fileName)
                 }
             }
             
-            /*if(temp != "")
+            if(numberString != "")
             {
                 contentArray.push_back(numberString);
-            }*/
+            }
         }
     }
     
