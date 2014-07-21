@@ -13,7 +13,7 @@ void SeamCarveImage::collectImageFromFile(string fileName)
 {
     string temp;
     ifstream infile;
-    int stepCount = 1;
+    int lineCount = 1;
     vector<string> contentArray;
     
     //Open the file
@@ -30,12 +30,12 @@ void SeamCarveImage::collectImageFromFile(string fileName)
         {
             //Comment line
         }
-        else if(stepCount == 1)
+        else if(lineCount == 1)
         {
             //P2 literal
-            stepCount++;
+            lineCount++;
         }
-        else if(stepCount == 2)
+        else if(lineCount == 2)
         {
             //Size of the image
             int space = temp.find(" ");
@@ -45,38 +45,39 @@ void SeamCarveImage::collectImageFromFile(string fileName)
             width = atoi(xString.c_str());
             height = atoi(yString.c_str());
             
-            image = new int*[width];
-            for(int i = 0; i < width; i++)
-            {
-                image[i] = new int[height];
-            }
+            createEmptyImageMatrix();
             
-            stepCount++;
+            lineCount++;
         }
-        else if(stepCount == 3)
+        else if(lineCount == 3)
         {
             //Maximum greyscale value
             maxGreyscale = temp;
-            stepCount++;
+            lineCount++;
         }
         else
         {
             //Content of the image
             string numberString = "";
             int stringLen = temp.length();
+            
+            //Loop through each character in the line...
             for(int i = 0; i < stringLen; i++)
             {
-                if(temp[i] == ' ' || temp[i] == '\t' || temp[i] == '\n')
+                //If the current character is a digit, it is part of the current number
+                if(isdigit(temp[i]))
+                {
+                    numberString += temp[i];
+                }
+                //Otherwise the current number has been fully collected and can be added to the list of pixel values
+                else
                 {
                     contentArray.push_back(numberString);
                     numberString = "";
                 }
-                else
-                {
-                    numberString += temp[i];
-                }
             }
             
+            //If there is anything left in the current number variable, push it into the list of pixel values
             if(numberString != "")
             {
                 contentArray.push_back(numberString);
@@ -86,14 +87,14 @@ void SeamCarveImage::collectImageFromFile(string fileName)
     
     infile.close();
     
-    //Fill image with content from contentArray
+    //Fill image matrix with content from contentArray
     int vectorIterator = 0;
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
         {
-            string currentIteration = contentArray.at(vectorIterator);
-            image[x][y] = atoi(currentIteration.c_str());
+            string currentPixelValue = contentArray.at(vectorIterator);
+            image[x][y] = atoi(currentPixelValue.c_str());
             vectorIterator++;
         }
     }
@@ -308,13 +309,8 @@ void SeamCarveImage::deleteVerticalSeam()
         delete [] image[i];
     }
     delete [] image;
-    
-    //Create new Image
-    image = new int*[width];
-    for(int i = 0; i < width; i++)
-    {
-        image[i] = new int[height];
-    }
+
+    createEmptyImageMatrix();
     
     int vectorIterator = 0;
     for(int y = 0; y < height; y++)
@@ -343,11 +339,7 @@ void SeamCarveImage::rotateImage()
     width = preRotateHeight;
     
     int** oldImage = image;
-    image = new int*[width];
-    for(int i = 0; i < width; i++)
-    {
-        image[i] = new int[height];
-    }
+    createEmptyImageMatrix();
     
     for(int y = 0; y < height; y++)
     {
@@ -366,4 +358,11 @@ void SeamCarveImage::rotateImage()
     delete [] oldImage;
 }
 
-
+void SeamCarveImage::createEmptyImageMatrix()
+{
+    image = new int*[width];
+    for(int i = 0; i < width; i++)
+    {
+        image[i] = new int[height];
+    }
+}

@@ -32,6 +32,7 @@ class SeamCarveImage
         void identifyVerticalSeam();
         void deleteVerticalSeam();
         void rotateImage();
+        void createEmptyImageMatrix();
 };
 
 #endif
