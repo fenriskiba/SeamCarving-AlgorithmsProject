@@ -124,23 +124,20 @@ void SeamCarveImage::outputCarvedImage()
 
 void SeamCarveImage::generatePixelEnergyMatrix()
 {
-    //Delete old
+    //Make sure there isn't already one
     if(pixelEnergyMatrix != NULL)
     {
-        for(int i = 0; i < width - 1; i++)
-        {
-            delete [] pixelEnergyMatrix[i];
-        }
-        delete [] pixelEnergyMatrix;
+        deletePixelEnergyMatrix();
     }
     
-    //Create new
+    //Create a new empty matrix
     pixelEnergyMatrix = new int*[width];
     for(int i = 0; i < width; i++)
     {
         pixelEnergyMatrix[i] = new int[height];
     }
     
+    //Fill in the pixel energy matrix
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
@@ -327,11 +324,7 @@ void SeamCarveImage::deleteVerticalSeam()
 
 void SeamCarveImage::rotateImage()
 {
-    for(int i = 0; i < width - 1; i++)
-    {
-        delete [] pixelEnergyMatrix[i];
-    }
-    delete [] pixelEnergyMatrix;
+    deletePixelEnergyMatrix();
     pixelEnergyMatrix = NULL;
     
     int preRotateWidth = width;
@@ -367,4 +360,13 @@ void SeamCarveImage::createEmptyImageMatrix()
     {
         image[i] = new int[height];
     }
+}
+
+void SeamCarveImage::deletePixelEnergyMatrix()
+{
+    for(int i = 0; i < width - 1; i++)
+    {
+        delete [] pixelEnergyMatrix[i];
+    }
+    delete [] pixelEnergyMatrix;
 }
