@@ -104,10 +104,12 @@ void SeamCarveImage::outputCarvedImage()
 {
     ofstream outputFile("image_processed.pgm");
     
+    //Required formatting for every .pgm image file
     outputFile << "P2" << endl
                 << width << " " << height << endl
                 << maxGreyscale << endl;
     
+    //Content of the image
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
