@@ -209,6 +209,7 @@ void SeamCarveImage::verticalCarve()
 
 void SeamCarveImage::horizontalCarve()
 {
+    //Rotate the image 90 degrees, perform a vertical carve, and then rotate it back 90 degrees
     rotateImage();
     verticalCarve();
     rotateImage();
