@@ -149,32 +149,35 @@ void SeamCarveImage::generatePixelEnergyMatrix()
 
 int SeamCarveImage::calculatePixelEnergy(int x, int y)
 {
-    int current = image[x][y];
+    //Collect the pixels required for the calculation from the pre-seam carved image
+        //For the surrounding pixels, if you are on an edge and the pixel isn't there, use the current pixel
+    int current = image[x][y];   
+    
     int above;
-    int below;
-    int right;
-    int left;
-    
-    if(x == 0)
-        left = image[x][y];
-    else
-        left = image[x-1][y];
-    
     if(y == 0)
-        above = image[x][y];
+        above = current;
     else
         above = image[x][y-1];
-        
-    if(x == width - 1)
-        right = image[x][y];
-    else
-        right = image[x+1][y];
-        
+    
+    int below;
     if(y == height - 1)
-        below = image[x][y];
+        below = current;
     else
         below = image[x][y+1];
     
+    int left;
+    if(x == 0)
+        left = current;
+    else
+        left = image[x-1][y];
+    
+    int right;
+    if(x == width - 1)
+        right = current;
+    else
+        right = image[x+1][y];
+    
+    //Calculate the pixel energy for the current pixel
     int result = abs(current - above) +
                 abs(current - below) +
                 abs(current - right) +
