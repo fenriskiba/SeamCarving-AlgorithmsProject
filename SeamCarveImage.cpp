@@ -150,9 +150,9 @@ void SeamCarveImage::generatePixelEnergyMatrix()
 int SeamCarveImage::calculatePixelEnergy(int x, int y)
 {
     //Collect the pixels required for the calculation from the pre-seam carved image
-        //For the surrounding pixels, if you are on an edge and the pixel isn't there, use the current pixel
-    int current = image[x][y];   
+    int current = image[x][y];
     
+    //For the surrounding pixels, if you are on an edge and the pixel isn't there, use the current pixel
     int above;
     if(y == 0)
         above = current;
@@ -217,77 +217,26 @@ void SeamCarveImage::horizontalCarve()
 
 void SeamCarveImage::identifyVerticalSeam()
 {
-    //Generate cumulative energy matrix
-    int** cumulativeEnergy = new int*[width];
+    //Create cumulative energy matrix
+    cumulativeEnergy = new int*[width];
     for(int i = 0; i < width; i++)
     {
         cumulativeEnergy[i] = new int[height];
     }
     
-    for(int y = 0; y < height; y++)
-    {
-        for(int x = 0; x < width; x++)
-        {        
-            if(y == 0)
-            {
-                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y];
-            }
-            else
-            {
-                int minLastNeighbor;
-                if(x == 0)
-                {
-                    minLastNeighbor = min(cumulativeEnergy[x+1][y-1], cumulativeEnergy[x][y-1]);
-                }
-                else if(x == (width - 1))
-                {
-                    minLastNeighbor = min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x][y-1]);
-                }
-                else
-                {
-                    minLastNeighbor = min(min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x+1][y-1]), cumulativeEnergy[x][y-1]);
-                }
-                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y] + minLastNeighbor;
-            }
-        }
-    }
+    populateCumulativeEnergyMatrix();
+    markVerticalSeam();
     
-    //Identify Seam
-    int smallestIndex = 0;
-    for(int i = 0; i < width; i++)
+    //Clear the cumulative energy matrix
+    for(int i = 0; i < width - 1; i++)
     {
-        if(cumulativeEnergy[i][height-1] < cumulativeEnergy[smallestIndex][height-1])
-        {
-            smallestIndex = i;
-        }
+        delete [] cumulativeEnergy[i];
     }
-    image[smallestIndex][height-1] = -1;
+    delete [] cumulativeEnergy;
     
-    for(int i = 1; i < height; i++)
-    {
-        int currentHeight = height - 1 - i;
-        int rightIndex = smallestIndex + 1;
-        int centerIndex = smallestIndex;
-        int leftIndex = smallestIndex - 1;
-        
-        if(rightIndex < 0 || rightIndex >= width)
-            rightIndex = centerIndex;
-        if(leftIndex < 0 || leftIndex >= width)
-            leftIndex = centerIndex;
-        
-        int smallestValue = min(min(cumulativeEnergy[rightIndex][currentHeight], cumulativeEnergy[leftIndex][currentHeight]), 
-                                cumulativeEnergy[centerIndex][currentHeight]);
-        
-        
-        if(cumulativeEnergy[leftIndex][currentHeight] == smallestValue)
-            smallestIndex = leftIndex;
-        else if(cumulativeEnergy[centerIndex][currentHeight] == smallestValue)
-            smallestIndex = centerIndex;
-        else if(cumulativeEnergy[rightIndex][currentHeight] == smallestValue)
-            smallestIndex = rightIndex;
-        
-        image[smallestIndex][currentHeight] = -1;
-    }
+    /*---------------------+
+    | LAST AREA REFACTORED |
+    +---------------------*/
 }
 
 void SeamCarveImage::deleteVerticalSeam()
@@ -366,6 +315,49 @@ void SeamCarveImage::createEmptyImageMatrix()
     }
 }
 
+void SeamCarveImage::populateCumulativeEnergyMatrix()
+{
+    //Populate the cumulative energy matrix
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < width; x++)
+        {        
+            //The first row should be the same as the pixel energy matrix
+            if(y == 0)
+            {
+                cumulativeEnergy[x][y] = pixelEnergyMatrix[x][y];
+            }
+            //Each preceding row will be calculated based on the previous row
+            else
+            {
+                cumulativeEnergy[x][y] = calculateCumulativeEnergyForSinglePixel(x,y);
+            }
+        }
+    }
+}
+
+int SeamCarveImage::calculateCumulativeEnergyForSinglePixel(int x, int y)
+{
+    int minLastNeighbor;
+    
+    //Find the smallest cumulative energy from the current pixels neighbors in the previous row 
+    if(x == 0)
+    {
+        minLastNeighbor = min(cumulativeEnergy[x+1][y-1], cumulativeEnergy[x][y-1]);
+    }
+    else if(x == (width - 1))
+    {
+        minLastNeighbor = min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x][y-1]);
+    }
+    else
+    {
+        minLastNeighbor = min(min(cumulativeEnergy[x-1][y-1], cumulativeEnergy[x+1][y-1]), cumulativeEnergy[x][y-1]);
+    }
+    
+    //The cumulative energy for the current pixel will be its pixel energy plus the cumulative energy found in the previous step
+    return pixelEnergyMatrix[x][y] + minLastNeighbor;
+}
+
 void SeamCarveImage::deletePixelEnergyMatrix()
 {
     for(int i = 0; i < width - 1; i++)
@@ -373,4 +365,46 @@ void SeamCarveImage::deletePixelEnergyMatrix()
         delete [] pixelEnergyMatrix[i];
     }
     delete [] pixelEnergyMatrix;
+}
+
+void SeamCarveImage::markVerticalSeam()
+{
+    //Locate the index of the lowest cumulative energy pixel in the top row and set that pixel to -1
+    int smallestIndex = 0;
+    for(int i = 0; i < width; i++)
+    {
+        if(cumulativeEnergy[i][height-1] < cumulativeEnergy[smallestIndex][height-1])
+        {
+            smallestIndex = i;
+        }
+    }
+    image[smallestIndex][height-1] = -1;
+    
+    //For each following row, find the next pixel in the seam and set it to -1
+    for(int i = 1; i < height; i++)
+    {
+        //TODO: Finish  refactoring this function
+        int currentHeight = height - 1 - i;
+        int rightIndex = smallestIndex + 1;
+        int centerIndex = smallestIndex;
+        int leftIndex = smallestIndex - 1;
+        
+        if(rightIndex < 0 || rightIndex >= width)
+            rightIndex = centerIndex;
+        if(leftIndex < 0 || leftIndex >= width)
+            leftIndex = centerIndex;
+        
+        int smallestValue = min(min(cumulativeEnergy[rightIndex][currentHeight], cumulativeEnergy[leftIndex][currentHeight]), 
+                                cumulativeEnergy[centerIndex][currentHeight]);
+        
+        
+        if(cumulativeEnergy[leftIndex][currentHeight] == smallestValue)
+            smallestIndex = leftIndex;
+        else if(cumulativeEnergy[centerIndex][currentHeight] == smallestValue)
+            smallestIndex = centerIndex;
+        else if(cumulativeEnergy[rightIndex][currentHeight] == smallestValue)
+            smallestIndex = rightIndex;
+        
+        image[smallestIndex][currentHeight] = -1;
+    }
 }

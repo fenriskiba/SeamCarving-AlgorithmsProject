@@ -14,6 +14,7 @@ class SeamCarveImage
     private:
         int** image;
         int** pixelEnergyMatrix;
+        int** cumulativeEnergy;
         int width;
         int height;
         string maxGreyscale;
@@ -33,6 +34,10 @@ class SeamCarveImage
         void deleteVerticalSeam();
         void rotateImage();
         void createEmptyImageMatrix();
+        void populateCumulativeEnergyMatrix();
+        int calculateCumulativeEnergyForSinglePixel(int, int);
+        void deletePixelEnergyMatrix();
+        void markVerticalSeam();
 };
 
 #endif
